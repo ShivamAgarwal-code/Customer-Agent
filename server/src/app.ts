@@ -30,11 +30,11 @@ export const createApp = (): express.Application => {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   app.use(requestLogger);
-  app.use((req, res, next) => {
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     req.ctx = ctx;
     next();
   });
-  app.get("/", (req, res) => {
+  app.get("/", (_req: express.Request, res: express.Response) => {
     res.status(200).json({
       status: "ok",
       message: "API is running",

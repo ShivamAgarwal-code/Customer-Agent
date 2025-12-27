@@ -16,11 +16,12 @@ const parseEnv = (): z.infer<typeof envSchema> => {
   const parsed = envSchema.safeParse(process.env);
 
   if (!parsed.success) {
+    // eslint-disable-next-line no-console
     console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors);
     process.exit(1);
   }
 
-  return parsed.data;
+  return parsed.data as z.infer<typeof envSchema>;
 };
 
 export const config = parseEnv();
