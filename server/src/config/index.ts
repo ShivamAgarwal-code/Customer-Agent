@@ -7,7 +7,7 @@ const envSchema = z.object({
   HOST: z.string().default('0.0.0.0'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   CORS_ORIGIN: z.string().default('*'),
-  DATABASE_URL: z.string().default('file:./dev.db'),
+  DATABASE_URL: z.string(),
   OPENAI_API_KEY: z.string(),
   OPENAI_MODEL: z.string().default('gpt-5-mini'),
 });

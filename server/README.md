@@ -23,10 +23,24 @@ A customer support chat API built with Node.js, TypeScript, Express, and OpenAI.
    Add your `OPENAI_API_KEY` to the `.env` file (see Environment Variables below).
 
 3. **Set up the database**
+   
+   **Option A: Use PostgreSQL (Recommended - matches production)**
    ```bash
+   # Using Docker
+   docker run --name postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres
+   
+   # Set DATABASE_URL in .env
+   DATABASE_URL=postgresql://postgres:password@localhost:5432/customer_agent
+   
+   # Run migrations
    npm run db:migrate
    ```
-   This runs Prisma migrations and creates the SQLite database file.
+   
+   **Option B: Use a local PostgreSQL installation**
+   - Install PostgreSQL on your system
+   - Create a database: `createdb customer_agent`
+   - Set `DATABASE_URL=postgresql://user:password@localhost:5432/customer_agent` in `.env`
+   - Run migrations: `npm run db:migrate`
 
 4. **Generate Prisma client**
    ```bash
@@ -42,11 +56,23 @@ A customer support chat API built with Node.js, TypeScript, Express, and OpenAI.
 
 ### Database Setup
 
-The project uses Prisma with SQLite. The database file is created at `./dev.db` by default (configurable via `DATABASE_URL`).
+The project uses Prisma with PostgreSQL for both development and production. This ensures consistency between local and production environments.
+
+**For Local Development:**
+- Install PostgreSQL locally or use Docker:
+  ```bash
+  docker run --name postgres -e POSTGRES_PASSWORD=password -p 5432:5432 -d postgres
+  ```
+- Set `DATABASE_URL=postgresql://postgres:password@localhost:5432/customer_agent` in your `.env`
+- Run migrations: `npm run db:migrate`
+
+**For Production:**
+- Set `DATABASE_URL=postgresql://user:password@host:port/database` in your environment
+- Migrations run automatically during deployment via `postbuild` script
 
 **Migrations:**
-- Run migrations: `npm run db:migrate`
-- Create a new migration after schema changes: `npm run db:migrate` (Prisma will detect changes)
+- Run migrations: `npm run db:migrate` (development)
+- Deploy migrations: `npm run db:migrate:deploy` (production)
 - View/edit database: `npm run db:studio`
 
 **Seeding:**
@@ -59,6 +85,7 @@ Create a `.env` file in the root directory:
 ```env
 # Required
 OPENAI_API_KEY=your_openai_api_key_here
+DATABASE_URL=postgresql://postgres:password@localhost:5432/customer_agent
 
 # Optional (defaults shown)
 NODE_ENV=development
@@ -66,7 +93,6 @@ PORT=3000
 HOST=0.0.0.0
 LOG_LEVEL=info
 CORS_ORIGIN=*
-DATABASE_URL=file:./dev.db
 OPENAI_MODEL=gpt-5-mini
 ```
 
@@ -79,8 +105,47 @@ OPENAI_MODEL=gpt-5-mini
 - `HOST` - Server host (default: 0.0.0.0)
 - `LOG_LEVEL` - Logging level (fatal/error/warn/info/debug/trace)
 - `CORS_ORIGIN` - CORS allowed origins (default: *)
-- `DATABASE_URL` - Database connection string (default: file:./dev.db)
+- `DATABASE_URL` - PostgreSQL connection string
+  - Format: `postgresql://user:password@host:port/database`
+  - Example (local): `postgresql://postgres:password@localhost:5432/customer_agent`
+  - Example (Render): `postgresql://user:pass@dpg-xxx.render.com:5432/dbname`
 - `OPENAI_MODEL` - OpenAI model to use (default: gpt-5-mini)
+
+## Deployment
+
+### Deploying to Render.com
+
+1. **Create a PostgreSQL Database on Render**
+   - Go to your Render dashboard
+   - Create a new PostgreSQL database
+   - Note the connection string (Internal Database URL)
+
+2. **Create a Web Service**
+   - Connect your GitHub repository
+   - Set the following:
+     - **Root Directory**: `server`
+     - **Build Command**: `npm install && npm run build`
+     - **Start Command**: `npm start`
+     - **Environment**: `Node`
+
+3. **Set Environment Variables in Render Dashboard**
+   ```
+   NODE_ENV=production
+   PORT=10000
+   HOST=0.0.0.0
+   LOG_LEVEL=info
+   CORS_ORIGIN=https://your-frontend-domain.com
+   OPENAI_API_KEY=your_openai_api_key
+   OPENAI_MODEL=gpt-5-mini
+   DATABASE_URL=<Internal Database URL from step 1>
+   ```
+
+4. **Alternative: Use render.yaml**
+   - The repository includes a `render.yaml` file at the root
+   - You can use it to deploy via Render's Blueprint feature
+   - Make sure to set `CORS_ORIGIN` and `OPENAI_API_KEY` in the Render dashboard
+
+**Note:** The application uses PostgreSQL for both development and production to ensure consistency. See `DEPLOYMENT.md` for detailed deployment instructions.
 
 ## Architecture
 
