@@ -19,7 +19,7 @@ const server = app.listen(config.PORT, config.HOST, () => {
 const gracefulShutdown = (signal: string): void => {
   logger.info({ signal }, 'Received shutdown signal, closing server...');
 
-  server.close((err) => {
+  server.close((err: Error | undefined) => {
     if (err) {
       logger.error({ err }, 'Error during server shutdown');
       process.exit(1);
@@ -40,13 +40,13 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', (err: Error) => {
   logger.fatal({ err }, 'Uncaught exception');
   process.exit(1);
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
   logger.fatal({ reason, promise }, 'Unhandled promise rejection');
   process.exit(1);
 });
